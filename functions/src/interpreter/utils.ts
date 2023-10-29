@@ -9,7 +9,7 @@ export async function findAndRunInterpreter(
   // TODO: This is a naive implementation, we can store interpretations in a indexed way
   for (const interpreter of interpretors) {
     const canInterpret = jsonata(interpreter.canInterpret);
-    const canInterpretResult = await canInterpret.evaluate(decoded);
+    const canInterpretResult = await canInterpret.evaluate(decoded).catch(() => false);
 
     if (!canInterpretResult) {
       continue;

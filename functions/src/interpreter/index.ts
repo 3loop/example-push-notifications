@@ -10,6 +10,7 @@ const decoder = new TransactionDecoder({
   getProvider,
   abiStore,
   contractMetaStore,
+  logging: true,
 });
 
 export async function interpretTransaction({
@@ -20,19 +21,22 @@ export async function interpretTransaction({
   chainID: number;
 }) {
   try {
+    console.log("Decoding transaction", hash);
     const decoded = await decoder.decodeTransaction({
       hash,
       chainID,
-    });
+    })
 
-    console.log(decoded);
-
+    console.log("Decoded transaction", decoded);
+    if (decoded == null) {
+      return undefined;
+    }
     const interpreted = await findAndRunInterpreter(decoded, interpreters);
 
     return interpreted;
   } catch (e) {
     logger.error(
-      "Error while decoding transaction",
+      "Error while decoding and interpreting transaction",
       JSON.stringify(e, null, 2),
     );
     return undefined;

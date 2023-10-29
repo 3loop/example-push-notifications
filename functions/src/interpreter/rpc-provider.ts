@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "ethers";
 
 const urls: Record<number, string> = {
-  1: "mainet-url",
+  1: "https://rpc.ankr.com/eth",
   5: "https://rpc.ankr.com/eth_goerli",
 };
 

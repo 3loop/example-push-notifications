@@ -5,6 +5,7 @@ import {
   EtherscanStrategyResolver,
   FourByteStrategyResolver,
 } from "@3loop/transaction-decoder";
+import { VanillaAbiStore } from "@3loop/transaction-decoder/dist/vanilla.js";
 
 interface GetContractAbiParams {
   address: string;
@@ -19,7 +20,7 @@ interface SetContractAbiParams {
   event?: Record<string, string>;
 }
 
-export const abiStore = {
+export const abiStore: VanillaAbiStore = {
   strategies: [EtherscanStrategyResolver(), FourByteStrategyResolver()],
   get: async ({ address, signature, event }: GetContractAbiParams) => {
     const db = getFirestore();

@@ -4,5 +4,4 @@ import { sendPushNotification } from "./send-push-notification.js";
 
 initializeApp();
 
-exports.handleTransaction = handleTransaction;
-exports.sendPushNotification = sendPushNotification;
+export { handleTransaction, sendPushNotification };
