@@ -21,13 +21,11 @@ export async function interpretTransaction({
   chainID: number;
 }) {
   try {
-    console.log("Decoding transaction", hash);
     const decoded = await decoder.decodeTransaction({
       hash,
       chainID,
     })
 
-    console.log("Decoded transaction", decoded);
     if (decoded == null) {
       return undefined;
     }

@@ -28,6 +28,8 @@ export const handleTransaction = onRequest(async (request, response) => {
 
   await pubSubClient.topic(SEND_PUSH_TOPIC).publishMessage({
     json: notification,
+  }).catch((e) => {
+    logger.error("Error while publishing message to topic", e);
   });
 
   response.send("OK");
