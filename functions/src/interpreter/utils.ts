@@ -16,6 +16,7 @@ export async function findAndRunInterpreter(
     }
 
     const expression = jsonata(interpreter.schema);
+
     return expression.evaluate(decoded);
   }
   return undefined;
