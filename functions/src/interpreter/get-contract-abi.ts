@@ -4,6 +4,8 @@ import { FirestoreAbi } from "../models.js";
 import {
   EtherscanStrategyResolver,
   FourByteStrategyResolver,
+  OpenchainStrategyResolver,
+  SourcifyStrategyResolver,
 } from "@3loop/transaction-decoder";
 import { VanillaAbiStore } from "@3loop/transaction-decoder/dist/vanilla.js";
 
@@ -21,7 +23,12 @@ interface SetContractAbiParams {
 }
 
 export const abiStore: VanillaAbiStore = {
-  strategies: [EtherscanStrategyResolver(), FourByteStrategyResolver()],
+  strategies: [
+    EtherscanStrategyResolver(),
+    SourcifyStrategyResolver(),
+    FourByteStrategyResolver(),
+    OpenchainStrategyResolver(),
+  ],
   get: async ({ address, signature, event }: GetContractAbiParams) => {
     const db = getFirestore();
     const addressDoc = await db
