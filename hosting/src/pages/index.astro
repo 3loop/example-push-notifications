@@ -1,0 +1,66 @@
+---
+// Component imports
+import { Layout } from "@globals"
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { getMessaging, getToken } from "firebase/messaging";
+import {app} from '../firebase'
+
+const db = getFirestore(app);
+const messaging = getMessaging(app);
+
+const enablePush = async (address) => {
+	const permissionResult = await Notification.requestPermission();
+
+	if(permissionResult !== 'granted') {
+		return alert('Permission not granted for Notification');
+	}
+
+	const token = await getToken(messaging);
+
+	const docRef = await collection(db, `address_tokens/${address}/tokens`)
+
+	await addDoc(docRef, {
+		token: token,
+		updatedAt: serverTimestamp(),
+		platform: 'webpsuh',
+	})
+}
+
+const onEnablePushClick = () => {
+	const address = document.getElementById('address')?.value
+	enablePush(address).then(() => {
+		alert('Push notifications enabled')
+	}).catch((err) => {
+		console.log(err)
+	})
+}
+---
+
+<Layout title="Astro PWA Starter">
+	<section class="p-6 flex-1 flex flex-col justify-between">
+		<!-- Welcome -->
+		<div
+			class="max-w-xl mx-auto flex flex-col justify-center flex-1 space-y-10"
+		>
+			<div class="space-y-2 text-center">
+				<h1 class="text-4xl font-semibold">Ethereum Push Notifications</h1>
+			</div>
+			<div>
+				<form>
+					<input
+					id="address" 
+					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+					type="text" name="address" placeholder="Enter your address" 
+					/>
+					<button
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+						type="button"
+					>
+						Subscribe
+					</button>
+				</form>
+			</div>
+		</div>
+
+	</section>
+</Layout>
