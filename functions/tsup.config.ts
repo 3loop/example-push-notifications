@@ -1,6 +1,4 @@
-import {
-  defineConfig
-} from "tsup";
+import { defineConfig } from "tsup";
 
 const isWatchMode = process.argv.includes("--watch");
 
@@ -15,10 +13,8 @@ export default defineConfig({
     "@google-cloud/pubsub",
     "cors",
     "firebase-admin",
-    "firebase-functions"
+    "firebase-functions",
   ],
-  entry: [
-    "src/index.ts"
-  ],
+  entry: ["src/index.ts"],
   outDir: "lib",
 });

@@ -7,7 +7,7 @@ const aave2 = [
 {
     "title": "Aave Repay",
     "body": "User repaid " & assetsSent[1].amount & " " & assetsSent[1].symbol,
-    "address": fromAddress
+    "address": toAddress
 }
       `,
     canInterpret:
@@ -19,7 +19,7 @@ const aave2 = [
 {
     "title": "Aave Deposit",
     "body": "User deposited " & assetsSent[0].amount & " " & assetsSent[0].symbol,
-    "address": fromAddress
+    "address": toAddress
 }
       `,
     canInterpret:
@@ -31,7 +31,7 @@ const aave2 = [
 {
     "title": "Aave Borrow",
     "body": "User borrowed " & assetsReceived[1].amount & " " & assetsReceived[1].symbol,
-    "address": fromAddress
+    "address": toAddress
 }
       `,
     canInterpret:
@@ -43,7 +43,7 @@ const aave2 = [
 {
     "title": "Aave Withdraw",
     "body": "User withdrew " & assetsReceived[0].amount & " " & assetsReceived[0].symbol,
-    "address": fromAddress
+    "address": toAddress
 }
       `,
     canInterpret:

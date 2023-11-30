@@ -24,7 +24,7 @@ export async function interpretTransaction({
     const decoded = await decoder.decodeTransaction({
       hash,
       chainID,
-    })
+    });
 
     if (decoded == null) {
       return undefined;

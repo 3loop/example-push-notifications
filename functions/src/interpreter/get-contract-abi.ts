@@ -1,5 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { ADDRESS_ABI_COLLECTION, SIGNATURE_ABI_COLLECTION } from "../constants.js";
+import {
+  ADDRESS_ABI_COLLECTION,
+  SIGNATURE_ABI_COLLECTION,
+} from "../constants.js";
 import { FirestoreAbi } from "../models.js";
 import {
   EtherscanStrategyResolver,
