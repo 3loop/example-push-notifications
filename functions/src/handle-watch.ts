@@ -1,21 +1,17 @@
-import { FCM_TOKENS_COLLECTION, WEBHOOKS_COLLECTION } from "./constants.js";
+import {
+  CONFIG_COLLECTION,
+  FCM_TOKENS_COLLECTION,
+  WEBHOOKS_COLLECTION,
+} from "./constants.js";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { Alchemy, Network, WebhookType } from "alchemy-sdk";
 import { getFirestore } from "firebase-admin/firestore";
-import { Webhook } from "./models.js";
+import { Config, Webhook } from "./models.js";
 import logger from "firebase-functions/logger";
+import { HttpsError } from "firebase-functions/v2/https";
 
-const AUTH_TOKEN = "q034BYzvA9aLf-xRMsCpYUGnmM1D594Y";
 // URL of deployed handleTransaction function
-const WEBHOOK_URL = "https://handletransaction-p4rqqijloq-uc.a.run.app";
 const NETWORK = Network.ETH_MAINNET;
-
-const settings = {
-  authToken: AUTH_TOKEN,
-  network: NETWORK,
-};
-
-const alchemy = new Alchemy(settings);
 
 export const onAddressWatch = onDocumentCreated(
   `${FCM_TOKENS_COLLECTION}/{address}`,
@@ -24,13 +20,32 @@ export const onAddressWatch = onDocumentCreated(
     const db = getFirestore();
 
     const defaultWebhook = db.collection(WEBHOOKS_COLLECTION).doc("default"); // TODO: Add support for multiple webhooks in real app
+    const configDocument = db.collection(CONFIG_COLLECTION).doc("webhook");
 
-    const webhook = await defaultWebhook.get().then((snapshot) => {
-      if (!snapshot.exists) {
-        return null;
-      }
-      const webhook = snapshot.data() as Webhook;
-      return webhook;
+    const [webhook, config] = await Promise.all([
+      defaultWebhook.get().then((snapshot) => {
+        if (!snapshot.exists) {
+          return null;
+        }
+        const webhook = snapshot.data() as Webhook;
+        return webhook;
+      }),
+      configDocument.get().then((snapshot) => {
+        if (!snapshot.exists) {
+          return null;
+        }
+        const config = snapshot.data() as Config;
+        return config;
+      }),
+    ]);
+
+    if (config == null) {
+      throw new HttpsError("internal", "App webhook configuration not found");
+    }
+
+    const alchemy = new Alchemy({
+      authToken: config.apiKey,
+      network: NETWORK,
     });
 
     if (webhook) {
@@ -41,7 +56,7 @@ export const onAddressWatch = onDocumentCreated(
       logger.log(`Address added to webhook: ${address}`);
     } else {
       const resp = await alchemy.notify.createWebhook(
-        WEBHOOK_URL,
+        config.webhookUrl,
         WebhookType.ADDRESS_ACTIVITY,
         {
           addresses: [address],
@@ -51,7 +66,7 @@ export const onAddressWatch = onDocumentCreated(
 
       await defaultWebhook.set({
         id: resp.id,
-        url: WEBHOOK_URL,
+        url: config.webhookUrl,
       });
 
       logger.log(`Webhook created: ${resp.id}`);

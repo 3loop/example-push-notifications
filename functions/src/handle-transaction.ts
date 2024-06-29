@@ -4,6 +4,7 @@ import { interpretTransaction } from "./interpreter/index.js";
 import * as logger from "firebase-functions/logger";
 import { getFunctions } from "firebase-admin/functions";
 
+// TODO: Should verify that the request is coming from Alchemy
 export const handleTransaction = onRequest(async (request, response) => {
   try {
     const webhookEvent = request.body as AlchemyWebhookEvent;

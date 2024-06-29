@@ -31,6 +31,11 @@ export interface Webhook {
   url: string;
 }
 
+export interface Config {
+  apiKey: string;
+  webhookUrl: string;
+}
+
 export type AlchemyWebhookType =
   | "MINED_TRANSACTION"
   | "DROPPED_TRANSACTION"
