@@ -1,11 +1,8 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { PubSub } from "@google-cloud/pubsub";
-import { SEND_PUSH_TOPIC } from "./constants.js";
 import { AlchemyWebhookEvent, PushNotification } from "./models.js";
 import { interpretTransaction } from "./interpreter/index.js";
 import * as logger from "firebase-functions/logger";
-
-const pubSubClient = new PubSub();
+import { getFunctions } from "firebase-admin/functions";
 
 export const handleTransaction = onRequest(async (request, response) => {
   try {
@@ -32,7 +29,7 @@ export const handleTransaction = onRequest(async (request, response) => {
     });
 
     if (interpreted == null) {
-      logger.warn("No interpretation found for transaction", request.body.hash);
+      logger.warn("No interpretation found for transaction", hash);
       response.send("OK");
       return;
     }
@@ -46,14 +43,13 @@ export const handleTransaction = onRequest(async (request, response) => {
 
     logger.log("Publishing notification to topic", notification);
 
-    await pubSubClient
-      .topic(SEND_PUSH_TOPIC)
-      .publishMessage({
-        json: notification,
-      })
-      .catch((e) => {
-        logger.error("Error while publishing message to topic", e);
-      });
+    const queue = getFunctions().taskQueue<PushNotification>(
+      "sendPushNotificationTask",
+    );
+
+    await queue.enqueue(notification).catch((e) => {
+      logger.error("Error while publishing message", e);
+    });
 
     response.send("OK");
   } catch (e) {

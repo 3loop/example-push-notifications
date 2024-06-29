@@ -5,9 +5,9 @@ import { getFirestore } from "firebase-admin/firestore";
 import { Webhook } from "./models.js";
 import logger from "firebase-functions/logger";
 
-const AUTH_TOKEN = "";
+const AUTH_TOKEN = "q034BYzvA9aLf-xRMsCpYUGnmM1D594Y";
 // URL of deployed handleTransaction function
-const WEBHOOK_URL = "";
+const WEBHOOK_URL = "https://handletransaction-p4rqqijloq-uc.a.run.app";
 const NETWORK = Network.ETH_MAINNET;
 
 const settings = {

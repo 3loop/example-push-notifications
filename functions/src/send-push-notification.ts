@@ -1,9 +1,9 @@
 import * as logger from "firebase-functions/logger";
 import { getFirestore } from "firebase-admin/firestore";
 import { TokenMessage, getMessaging } from "firebase-admin/messaging";
-import { FCM_TOKENS_COLLECTION, SEND_PUSH_TOPIC } from "./constants.js";
+import { FCM_TOKENS_COLLECTION } from "./constants.js";
 import { PushNotification, type PushToken } from "./models.js";
-import { onMessagePublished } from "firebase-functions/v2/pubsub";
+import { onTaskDispatched } from "firebase-functions/v2/tasks";
 
 function getAllTokens(address: string) {
   const db = getFirestore();
@@ -22,10 +22,15 @@ function getAllTokens(address: string) {
     });
 }
 
-export const sendPushNotification = onMessagePublished<PushNotification>(
-  SEND_PUSH_TOPIC,
-  async (event) => {
-    const { address, title, body } = event.data.message.json;
+export const sendPushNotificationTask = onTaskDispatched<PushNotification>(
+  {
+    retryConfig: {
+      maxAttempts: 3,
+      minBackoffSeconds: 30,
+    },
+  },
+  async (request) => {
+    const { address, title, body } = request.data;
 
     const tokens = await getAllTokens(address);
 
@@ -33,6 +38,8 @@ export const sendPushNotification = onMessagePublished<PushNotification>(
       logger.log("No tokens found for address", address);
       return;
     }
+
+    logger.log(`Sending push notification to ${tokens.length} tokens`);
 
     const messages: TokenMessage[] = tokens.map((token) => {
       return {

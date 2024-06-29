@@ -31,11 +31,10 @@ export interface Webhook {
   url: string;
 }
 
-
 export type AlchemyWebhookType =
   | "MINED_TRANSACTION"
   | "DROPPED_TRANSACTION"
-  | "ADDRESS_ACTIVITY"
+  | "ADDRESS_ACTIVITY";
 
 export interface AlchemyWebhookEvent {
   webhookId: string;

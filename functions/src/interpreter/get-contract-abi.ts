@@ -5,25 +5,13 @@ import {
 } from "../constants.js";
 import { FirestoreAbi } from "../models.js";
 import {
+  ContractAbiResult,
   EtherscanStrategyResolver,
   FourByteStrategyResolver,
   OpenchainStrategyResolver,
   SourcifyStrategyResolver,
+  VanillaAbiStore,
 } from "@3loop/transaction-decoder";
-import { VanillaAbiStore } from "@3loop/transaction-decoder/dist/vanilla.js";
-
-interface GetContractAbiParams {
-  address: string;
-  signature?: string | undefined;
-  event?: string | undefined;
-  chainID: number;
-}
-
-interface SetContractAbiParams {
-  address?: Record<string, string>;
-  func?: Record<string, string>;
-  event?: Record<string, string>;
-}
 
 export const abiStore: VanillaAbiStore = {
   strategies: [
@@ -32,15 +20,26 @@ export const abiStore: VanillaAbiStore = {
     FourByteStrategyResolver(),
     OpenchainStrategyResolver(),
   ],
-  get: async ({ address, signature, event }: GetContractAbiParams) => {
+  get: async ({ address, signature, event, chainID }) => {
     const db = getFirestore();
     const addressDoc = await db
       .collection(ADDRESS_ABI_COLLECTION)
       .doc(address.toLowerCase())
       .get();
+
     if (addressDoc.exists) {
       const data = addressDoc.data() as FirestoreAbi;
-      return data.abi;
+      return {
+        status: "success",
+        result: {
+          type: "address",
+          address: address,
+          event: event,
+          signature: signature,
+          chainID: chainID,
+          abi: data.abi,
+        },
+      } as ContractAbiResult;
     }
 
     const signatureOrEvent = signature ?? event;
@@ -53,44 +52,50 @@ export const abiStore: VanillaAbiStore = {
 
       if (signatureDoc.exists) {
         const data = signatureDoc.data() as FirestoreAbi;
-        return `[${data.abi}]`;
+        return {
+          status: "success",
+          result:
+            signatureOrEvent === signature
+              ? {
+                type: "func",
+                address: address,
+                signature: signature,
+                chainID: chainID,
+                abi: data.abi,
+              }
+              : {
+                type: "event",
+                address: address,
+                signature: signature,
+                chainID: chainID,
+                abi: data.abi,
+              },
+        } as ContractAbiResult;
       }
     }
 
-    return null;
-  },
-  set: async ({ address, func = {}, event = {} }: SetContractAbiParams) => {
-    const db = getFirestore();
-
-    if (address != null) {
-      const abis = Object.entries(address);
-      // ADDRESS_ABI_COLLECTION
-      await Promise.all(
-        abis.map(([address, abi]) => {
-          return db
-            .collection(ADDRESS_ABI_COLLECTION)
-            .doc(address.toLowerCase())
-            .set({ abi }, { merge: true });
-        }),
-      );
-    }
-
-    const signature = {
-      ...func,
-      ...event,
+    return {
+      status: "empty",
+      result: null,
     };
+  },
+  set: async (key, value) => {
+    const db = getFirestore();
+    if (value.status === "success" && value.result.type === "address") {
+      await db
+        .collection(ADDRESS_ABI_COLLECTION)
+        .doc(key.address.toLowerCase())
+        .set({ abi: value.result.abi }, { merge: true });
+    } else if (value.status === "success") {
+      const docId = value.result.type === "func" ? key.signature : key.event;
 
-    if (signature != null) {
-      const fragments = Object.entries(signature);
-
-      await Promise.all(
-        fragments.map(([sig, abi]) => {
-          return db
-            .collection(SIGNATURE_ABI_COLLECTION)
-            .doc(sig)
-            .set({ abi }, { merge: true });
-        }),
-      );
+      await db
+        .collection(SIGNATURE_ABI_COLLECTION)
+        .doc(docId!)
+        .set(
+          { abi: value.result.abi, type: value.result.type },
+          { merge: true },
+        );
     }
   },
 };
